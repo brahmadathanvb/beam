@@ -1,0 +1,77 @@
+clear;clc
+%% Constants
+n=1000;
+t = linspace(0,10,n);
+E = 70e3;
+sigma_zero=E/500;
+sigma_u=1.5*sigma_zero;
+s_zero=0.1;
+a=100;
+I=a*((2*a)^3)/12;
+y=0:0.5:a;
+%% Database 
+k=200;    % number of points in vertical direction
+j=2:201;
+sigma = zeros(k,n);
+epsilonP =zeros(k,n);
+epsilon =zeros(k,n);
+epsilone =zeros(k,n);
+s=zeros(k,n);
+drho=zeros(k,n);
+depsilonP_prwv =zeros();
+depsilonP=zeros(k,n);
+depsilone=zeros(k,n);
+depsilon=zeros(k,n);
+M1=0;
+dhro=zeros(k,n);
+%%
+M=(2*sigma_zero*I/a)*sin(pi*(t));
+for i=1:n-1
+        while((depsilonP-depsilonP_prwv')<(1e-5))
+                for j=2:200
+                dm=M(i+1)-M1;
+%                 drho(i+1)=dm/(E*I);
+                drho(j,i+1)=(M(i+1)/(E*I))-(1/I)*y(j)*0.5*(depsilonP(j,i+1));
+                depsilon(j,i+1)=-1*y(j)*drho(j,i+1);
+                depsilone(j,i+1)= depsilon(j,i+1)-depsilonP(j,i+1);
+                dsigmatr = E*depsilone(j,i+1);
+                sigmaY=sigma_zero+((sigma_u-sigma_zero)*(1-exp((-1)*s(j,i+1)/s_zero)));
+                ftr = abs(sigma(j,i+1)+dsigmatr) - sigmaY;
+                    if ftr <= 0
+                       dsigma(j,i+1) =dsigmatr;
+                       depsilonP_prwv(j)=depsilonP(j,i+1);
+                       sigma(j,i+1)= sigma(j,i+1)+dsigma(j,i+1);
+                       epsilonP(j,i+1) = epsilonP(j,i+1)+depsilonP(j,i+1);
+                    else
+                       dlamda=Lamda(ftr);
+                       depsilonP_prwv(j)=depsilonP(j,i+1);
+                       depsilonP(j,i+1) = depsilonP(j,i+1)+ dlamda*sign(sigma(j,i+1)+dsigmatr);
+%                        drho(j,i+1)=(M(i+1)/(E*I))-(1/I)*y(j)*0.5*(depsilonP(j,i+1));
+                       dsigma(1,i) = dsigmatr - E*dlamda*sign(dsigmatr);
+                       sigma(j,i+1)= sigma(j,i+1)+dsigma(j,i+1);
+                       ds(j,i+1) = ds(j,i+1)+dlamda;
+                       s(j,i+1)=s(j,i+1)+ds(j,i+1);
+                       epsilonP(j,i+1) = epsilonP(j,i+1)+depsilonP(j,i+1);
+                    end
+                end
+        end
+     if i<n
+        M1=M(i+1);
+     else
+     break;
+     end
+end
+%endn
+
+% plot(t,epsilon);
+% grid on;
+% xlabel('time (secs)');
+% ylabel('strain');
+% figure, plot(t,sigma);
+% grid on;
+% xlabel('time');
+% ylabel('stress (MPa');
+% figure, plot(epsilon,sigma);
+% grid on;
+% xlabel('strain');
+% ylabel('stress (MPa');
